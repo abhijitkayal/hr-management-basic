@@ -1,91 +1,56 @@
-// import mongoose from "mongoose";
+import dns from "node:dns";
 
-// const MONGODB_URI = process.env.MONGODB_URI || "";
-
-// if (!MONGODB_URI) {
-//   console.error("Missing MONGODB_URI environment variable. Ensure .env.local or environment provides it.");
-//   throw new Error("MONGODB_URI missing");
-// }
-
-// let cached: any =
-//   global.mongoose;
-
-// if (!cached) {
-//   cached =
-//     global.mongoose = {
-//       conn: null,
-//       promise: null,
-//     };
-// }
-
-// export async function connectDB() {
-//   if (cached.conn) {
-//     return cached.conn;
-//   }
-
-//   if (!cached.promise) {
-//     cached.promise =
-//       mongoose.connect(
-//         MONGODB_URI
-//       );
-//   }
-
-//   cached.conn =
-//     await cached.promise;
-
-//   return cached.conn;
-// }
-
+dns.setServers([
+  "8.8.8.8",
+  "8.8.4.4",
+]);
 
 import mongoose from "mongoose";
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "";
+const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
-  throw new Error(
-    "Please define MONGODB_URI"
-  );
+  throw new Error("Please define MONGODB_URI");
 }
 
-// GLOBAL TYPE
 declare global {
-
-  var mongoose: {
-    conn: any;
-    promise: any;
-  };
+  var mongooseCache:
+    | {
+        conn: typeof mongoose | null;
+        promise: Promise<typeof mongoose> | null;
+      }
+    | undefined;
 }
 
-// CACHE
-let cached =
-  global.mongoose;
+const cached = global.mongooseCache || {
+  conn: null,
+  promise: null,
+};
 
-if (!cached) {
-
-  cached =
-    global.mongoose = {
-      conn: null,
-      promise: null,
-    };
-}
+global.mongooseCache = cached;
 
 export async function connectDB() {
+  try {
+    if (cached.conn) {
+      return cached.conn;
+    }
 
-  if (cached.conn) {
+    if (!cached.promise) {
+      console.log("🔄 Connecting MongoDB...");
+      
+      cached.promise = mongoose.connect("mongodb+srv://HACK:giDCgxy2d3HiO7IE@hackethic.ozjloba.mongodb.net/hr-management-basic?retryWrites=true&w=majority&appName=HACKETHIC", {
+        serverSelectionTimeoutMS: 10000,
+      });
+    }
+
+    cached.conn = await cached.promise;
+
+    console.log("✅ MongoDB Connected");
+
     return cached.conn;
+  } catch (error) {
+    cached.promise = null;
+    console.error(error);
+    throw error;
   }
-
-  if (!cached.promise) {
-
-    cached.promise =
-      mongoose.connect(
-        MONGODB_URI
-      );
-  }
-
-  cached.conn =
-    await cached.promise;
-
-  return cached.conn;
 }
