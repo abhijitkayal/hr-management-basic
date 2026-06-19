@@ -7,6 +7,7 @@ import { AppSidebar }
 from "./dashboard/components/app-sidebar";
 import { SiteHeader } from "./dashboard/components/site-header";
 
+
 export default function AdminLayout({
   children,
 }: {

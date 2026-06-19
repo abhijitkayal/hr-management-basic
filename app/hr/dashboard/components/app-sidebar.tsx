@@ -311,7 +311,7 @@ React.useEffect(() => {
   <span className="text-base font-semibold">
 
     {settings?.businessName ||
-      "Acme Inc."}
+      "CyberSpace Works"}
 
   </span>
 
